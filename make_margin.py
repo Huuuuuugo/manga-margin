@@ -28,7 +28,7 @@ def cropX(img):
                 markup[y][x:x+5] = [255, 20, 20]
                 edges_ltr.append(x)
                 break
-        for i, pixel in enumerate(reversed(line[len(line)//4:len(line)])):
+        for i, pixel in enumerate(reversed(line[3*(len(line)//4):len(line)])):
             if pixel[0] < 200:
                 x = len(line) - i
                 if x > crop_pos[1]:
