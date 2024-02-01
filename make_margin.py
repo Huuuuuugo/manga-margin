@@ -2,8 +2,11 @@ import cv2 as cv
 import numpy as np
 from collections import Counter as counter
 
-#TODO: get best margin size from scanning input images
-def cropImgW(img, page, best_margin):
+#TODO: create function getMargin() to get best margin size from scanning input images
+#TODO: create mkMarginY(), a variation of mkMarginX() which iterates trhough the Y axis
+#TODO: separate mkMarginX() into mkMarginX() and cropX()
+#TODO: separate mkMarginY() into mkMarginY() and cropY()
+def mkMarginX(img, page, best_margin):
     img_h, img_w, ch = img.shape
     crop_pos = [img_w, 0] 
 
@@ -96,7 +99,7 @@ def mainA(i, path, page):
     print(i)
     name = f"kcc-{str(i).zfill(4)}-kcc.jpg"
     img = cv.imread(f"{path}{name}")
-    result = cropImgW(img, page, 62)
+    result = mkMarginX(img, page, 62)
     cv.imwrite(f"esculturas/{str(i).zfill(5)}.png", result)
 
     return img, result
