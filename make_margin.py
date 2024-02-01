@@ -60,7 +60,7 @@ def mkMarginX(crop, page, best_margin, side, mrgn_ltr, mrgn_rtl, original_shape)
     print(mrgn_ltr, mrgn_rtl)
     mrgn_ltr = best_margin - mrgn_ltr
     mrgn_rtl = best_margin - mrgn_rtl
-    if not side or side > 2:
+    if not side:
         print("NONE")
         result = np.full((img_h, (crop_w+best_margin+mrgn_ltr+mrgn_rtl), ch), [255, 255, 255], dtype=np.uint8)
         if page:
@@ -75,6 +75,8 @@ def mkMarginX(crop, page, best_margin, side, mrgn_ltr, mrgn_rtl, original_shape)
         print("RTL")
         result = np.full((img_h, (crop_w+2*best_margin), ch), [255, 255, 255], dtype=np.uint8)
         result[0:, best_margin*2:crop_w+best_margin*2] = crop
+    else:
+        result = crop
 
     print(img_w, result.shape[1])
     return result
@@ -93,7 +95,7 @@ def mainA(i, path, page):
 path = "samples/esculturas/"
 page = 1
 
-for i in range(232, 264): #232 264
+for i in range(256, 264): #232 264
     img, result = mainA(i, path, page)
     page = 1 - page
     cv.imwrite("__result.png", result)
