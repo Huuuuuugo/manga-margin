@@ -57,10 +57,6 @@ def cropImgW(img, page, best_margin):
         if mrgn[1] > 2 and img_w*0.2 > mrgn_size and img_w*0.04 < mrgn_size:
             mrgn_rtl = mrgn_size
             break
-    print(mrgn_ltr, mrgn_rtl)
-    print(img_w, crop_w)
-    print(crop_pos[0], crop_pos[1])
-    print(crop_pos[1] in edges_rtl)
 
     # gets if page is touching left, right or no edge of the page
     side = 'n'
@@ -75,8 +71,8 @@ def cropImgW(img, page, best_margin):
                 
     # if crop_pos[0] == 0 and crop_pos[1] == img_w:
     #     result = img
-    # mrgn_ltr = best_margin - mrgn_ltr
-    # mrgn_rtl = best_margin - mrgn_rtl
+    mrgn_ltr = best_margin - mrgn_ltr
+    mrgn_rtl = best_margin - mrgn_rtl
     if side == 'l':
         print("LTR")
         # if mrgn_ltr < best_margin:
@@ -91,23 +87,23 @@ def cropImgW(img, page, best_margin):
         result[0:, best_margin*2:crop_w+best_margin*2] = crop
     else:
         print("NONE")
-        result = np.full((img_h, (crop_w+2*best_margin+mrgn_ltr+mrgn_rtl), ch), [255, 255, 255], dtype=np.uint8)
+        result = np.full((img_h, (crop_w+best_margin+mrgn_ltr+mrgn_rtl), ch), [255, 255, 255], dtype=np.uint8)
         if page:
-            result[0:, best_margin:crop_w+best_margin] = crop
+            result[0:, mrgn_ltr:crop_w+mrgn_ltr] = crop
         else:
-            result[0:, best_margin*2:crop_w+best_margin*2] = crop
+            print(mrgn_ltr, mrgn_rtl, best_margin)
+            result[0:, best_margin+mrgn_ltr:crop_w+best_margin+mrgn_ltr] = crop
 
     return result
 
 
 path = "samples/esculturas/"
 page = 1
-for i in range(244, 264): #232
+for i in range(232, 264): #232
     print(i)
     name = f"kcc-{str(i).zfill(4)}-kcc.jpg"
     img = cv.imread(f"{path}{name}")
     result = cropImgW(img, page, 62)
     page = 1 - page
-    cv.imwrite("__result.png", result)
-    input()
+    cv.imwrite(f"esculturas/{str(i).zfill(5)}.png", result)
 
