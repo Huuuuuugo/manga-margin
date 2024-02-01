@@ -3,84 +3,64 @@ import numpy as np
 from collections import Counter as counter
 
 #TODO: create function getMargin() to get best margin size from scanning input images
+#TODO: make mkMarginX() compensate for the difference between common width and width of cropped image
+    # create a function to get the common width from scanning input image
 #TODO: create mkMarginY(), a variation of mkMarginX() which iterates trhough the Y axis
-#TODO: separate mkMarginX() into mkMarginX() and cropX()
 #TODO: separate mkMarginY() into mkMarginY() and cropY()
 def cropX(img):
     img_w = img.shape[1]
-    crop_pos = [img_w, 0] 
+    crop_pos = [img_w, 0]
+    markup = img.copy()
 
     kernel = cv.getStructuringElement(cv.MORPH_OPEN, (3,3))
     morph = cv.bitwise_not(cv.morphologyEx(cv.bitwise_not(img), cv.MORPH_OPEN, kernel))
-    cv.imwrite("__morph.png", morph)
 
-    get_edge_ltr = []
-    get_edge_rtl = []
     edges_ltr = []
     edges_rtl = []
+    side = 0
     for y, line in enumerate(morph):
-        for x, pixel in enumerate(line):
+        for x, pixel in enumerate(line[0:len(line)//4]):
             if pixel[0] < 200:
                 if x <= crop_pos[0]:
                     crop_pos[0] = x
-                get_edge_ltr.append(x)
+                if x == 0 and side < 1:
+                    side += 1
+                markup[y][x:x+5] = [255, 20, 20]
+                edges_ltr.append(x)
                 break
-        for i, pixel in enumerate(reversed(line)):
+        for i, pixel in enumerate(reversed(line[len(line)//4:len(line)])):
             if pixel[0] < 200:
                 x = len(line) - i
                 if x > crop_pos[1]:
                     crop_pos[1] = x
-                get_edge_rtl.append(x)
+                if x == img_w and side < 2:
+                    side += 2
+                markup[y][x-5:x] = [255, 20, 20]
+                edges_rtl.append(x)
                 break
-        if not (y+1)%10 and len(get_edge_ltr):
-            edges_ltr.append(min(get_edge_ltr))
-            edges_rtl.append(max(get_edge_rtl))
-            get_edge_ltr = []
-            get_edge_rtl = []
 
     crop = img[0:, crop_pos[0]:crop_pos[1]]
+
+    edges_ltr = counter(edges_ltr).most_common()
+    edges_rtl = counter(edges_rtl).most_common()
+    mrgn_ltr = edges_ltr[0][0] - crop_pos[0]
+    mrgn_rtl = crop_pos[1] - edges_rtl[0][0]
+    # print(side)
+    cv.imwrite("__morph.png", morph)
     cv.imwrite("__cropped.png", crop)
-
-    edges_ltr = counter(edges_ltr).most_common(5)
-    edges_rtl = counter(edges_rtl).most_common(5)
-    # print(edges_ltr, '\n', edges_rtl)
-    # print(img_w*0.04, img_w*0.2)
-    return crop, edges_ltr, edges_rtl, crop_pos
+    cv.imwrite("__markup.png", markup)
+    return crop, mrgn_ltr, mrgn_rtl, side
 
 
-def mkMarginX(crop, page, best_margin, edges_ltr, edges_rtl, crop_pos, original_shape):
+def mkMarginX(crop, page, best_margin, side, mrgn_ltr, mrgn_rtl, original_shape):
     img_h, img_w, ch = original_shape
-    crop_w = crop_pos[1]-crop_pos[0]
-    # gets propper sizes for left and right margin
-    mrgn_ltr = 0
-    mrgn_rtl = 0
-    margin = 0
-    for mrgn in edges_ltr:
-        mrgn_size = mrgn[0]
-        if mrgn[1] > 2 and img_w*0.2 > mrgn_size and img_w*0.04 < mrgn_size:
-            mrgn_ltr = mrgn_size
-            break
-    for mrgn in edges_rtl:
-        mrgn_size = img_w-mrgn[0]
-        if mrgn[1] > 2 and img_w*0.2 > mrgn_size and img_w*0.04 < mrgn_size:
-            mrgn_rtl = mrgn_size
-            break
-
-    # gets if page is touching left, right or no edge of the page
-    side = 0
-    if mrgn_ltr > mrgn_rtl:
-        for edge in edges_ltr:
-            if edge[0] == crop_pos[0] and edge[1] > 2:
-                side = 1
-    elif mrgn_rtl > mrgn_ltr:
-        for edge in edges_rtl:
-            if edge[0] == crop_pos[1] and edge[1] > 2:
-                side = 2
-                
+    crop_w = crop.shape[1]
+       
     # apply margin values
+    print(mrgn_ltr, mrgn_rtl)
     mrgn_ltr = best_margin - mrgn_ltr
     mrgn_rtl = best_margin - mrgn_rtl
-    if not side:
+    if not side or side > 2:
         print("NONE")
         result = np.full((img_h, (crop_w+best_margin+mrgn_ltr+mrgn_rtl), ch), [255, 255, 255], dtype=np.uint8)
         if page:
@@ -89,11 +69,11 @@ def mkMarginX(crop, page, best_margin, edges_ltr, edges_rtl, crop_pos, original_
             result[0:, best_margin+mrgn_ltr:crop_w+best_margin+mrgn_ltr] = crop
     elif side == 1:
         print("LTR")
-        result = np.full((img_h, (crop_w+2*best_margin+margin), ch), [255, 255, 255], dtype=np.uint8)
-        result[0:, 0+margin:crop_w+margin] = crop
-    else:
+        result = np.full((img_h, (crop_w+2*best_margin), ch), [255, 255, 255], dtype=np.uint8)
+        result[0:, 0:crop_w] = crop
+    elif side == 2:
         print("RTL")
-        result = np.full((img_h, (crop_w+2*best_margin+margin), ch), [255, 255, 255], dtype=np.uint8)
+        result = np.full((img_h, (crop_w+2*best_margin), ch), [255, 255, 255], dtype=np.uint8)
         result[0:, best_margin*2:crop_w+best_margin*2] = crop
 
     print(img_w, result.shape[1])
@@ -104,17 +84,16 @@ def mainA(i, path, page):
     print(i)
     name = f"kcc-{str(i).zfill(4)}-kcc.jpg"
     img = cv.imread(f"{path}{name}")
-    crop, edges_ltr, edges_rtl, crop_pos = cropX(img)
-    result = mkMarginX(crop, page, 62, edges_ltr, edges_rtl, crop_pos, img.shape)
+    crop, mrgn_ltr, mrgn_rtl, side = cropX(img)
+    result = mkMarginX(crop, page, 62, side, mrgn_ltr, mrgn_rtl, img.shape)
     cv.imwrite(f"esculturas/{str(i).zfill(5)}.png", result)
-
     return img, result
 
 
 path = "samples/esculturas/"
 page = 1
 
-for i in range(232, 264): #232
+for i in range(232, 264): #232 264
     img, result = mainA(i, path, page)
     page = 1 - page
     cv.imwrite("__result.png", result)
