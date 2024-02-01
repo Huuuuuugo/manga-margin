@@ -6,8 +6,8 @@ from collections import Counter as counter
 #TODO: create mkMarginY(), a variation of mkMarginX() which iterates trhough the Y axis
 #TODO: separate mkMarginX() into mkMarginX() and cropX()
 #TODO: separate mkMarginY() into mkMarginY() and cropY()
-def mkMarginX(img, page, best_margin):
-    img_h, img_w, ch = img.shape
+def cropX(img):
+    img_w = img.shape[1]
     crop_pos = [img_w, 0] 
 
     kernel = cv.getStructuringElement(cv.MORPH_OPEN, (3,3))
@@ -39,14 +39,18 @@ def mkMarginX(img, page, best_margin):
             get_edge_rtl = []
 
     crop = img[0:, crop_pos[0]:crop_pos[1]]
-    crop_w = crop_pos[1]-crop_pos[0]
     cv.imwrite("__cropped.png", crop)
 
     edges_ltr = counter(edges_ltr).most_common(5)
     edges_rtl = counter(edges_rtl).most_common(5)
     # print(edges_ltr, '\n', edges_rtl)
     # print(img_w*0.04, img_w*0.2)
+    return crop, edges_ltr, edges_rtl, crop_pos
 
+
+def mkMarginX(crop, page, best_margin, edges_ltr, edges_rtl, crop_pos, original_shape):
+    img_h, img_w, ch = original_shape
+    crop_w = crop_pos[1]-crop_pos[0]
     # gets propper sizes for left and right margin
     mrgn_ltr = 0
     mrgn_rtl = 0
@@ -92,6 +96,7 @@ def mkMarginX(img, page, best_margin):
         result = np.full((img_h, (crop_w+2*best_margin+margin), ch), [255, 255, 255], dtype=np.uint8)
         result[0:, best_margin*2:crop_w+best_margin*2] = crop
 
+    print(img_w, result.shape[1])
     return result
 
 
@@ -99,7 +104,8 @@ def mainA(i, path, page):
     print(i)
     name = f"kcc-{str(i).zfill(4)}-kcc.jpg"
     img = cv.imread(f"{path}{name}")
-    result = mkMarginX(img, page, 62)
+    crop, edges_ltr, edges_rtl, crop_pos = cropX(img)
+    result = mkMarginX(crop, page, 62, edges_ltr, edges_rtl, crop_pos, img.shape)
     cv.imwrite(f"esculturas/{str(i).zfill(5)}.png", result)
 
     return img, result
