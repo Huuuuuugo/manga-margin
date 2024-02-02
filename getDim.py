@@ -1,0 +1,82 @@
+import cv2 as cv
+import numpy as np
+from collections import Counter as counter
+from make_margin import cropY, cropX, mkMarginY, mkMarginX
+
+
+def getDim(img):
+    h, w = 0, 0
+    crop_imgY, ttb, btt, sideY = cropY(img)
+    if not sideY:
+        h = crop_imgY.shape[0] - ttb - btt
+    elif sideY == 1:
+        h = crop_imgY.shape[0] - btt
+    elif sideY == 2:
+        h = crop_imgY.shape[0] - ttb
+    elif sideY == 3:
+        h = crop_imgY.shape[0]
+
+    crop_imgX, ltr, rtl, sideX = cropX(crop_imgY)
+    if not sideX:
+        w = crop_imgX.shape[1] - ltr - rtl
+    elif sideX == 1:
+        w = crop_imgX.shape[1] - rtl
+    elif sideX == 2:
+        w = crop_imgX.shape[1] - ltr
+    elif sideX == 3:
+        w = crop_imgX.shape[1]
+
+
+    return h, w
+
+
+def resizeImg(img, best_h, best_w, dim_h, dim_w):
+    img_h, img_w, ch = img.shape
+    result = img.copy()
+
+    scale_h = best_h - dim_h
+    scale_w = best_w - dim_w
+    dif_h = best_h/100
+    dif_w = best_w/100
+
+    if abs(scale_h) > dif_h and abs(scale_w) > dif_w:
+        if dif_h > dif_w: #15.57 #3.72    #10.74 #2.08
+            print("H: ", scale_h)
+            result = cv.resize(img, (img_w, img_h+scale_h)) 
+        else:
+            print("W: ", scale_w)
+            result = cv.resize(img, (img_w+scale_w, img_h))
+    # result = cv.resize(img, (img_w - img_w%5, img_h - img_h%5))
+    return result
+
+best_h = 1557
+best_w = 1074
+x_margin = 62
+y_margin = 100
+if __name__ == "__main__":
+    path = "samples/esculturas/"
+    page = 1
+    # both 249; top 254
+    for i in range(232, 264): #232
+        print("PAGE: ", i)
+        name = f"kcc-{str(i).zfill(4)}-kcc.jpg"
+        img = cv.imread(f"{path}{name}")
+
+        dim_h, dim_w = getDim(img)
+        img = resizeImg(img, best_h, best_w, dim_h, dim_w)
+
+        crop, mrgn_ttb, mrgn_btt, side = cropY(img)
+        resultY = mkMarginY(crop, y_margin, side, mrgn_ttb, mrgn_btt)
+
+        crop1, mrgn_ltr, mrgn_rtl, side = cropX(resultY)
+        result = mkMarginX(crop1, page, x_margin, side, mrgn_ltr, mrgn_rtl)
+
+        final_h = best_w+2*y_margin
+        final_w = best_h+3*x_margin
+        result = cv.resize(result, (final_h-final_h%5, final_w-final_w%5))
+
+        cv.imwrite(f"esculturas/{str(i).zfill(5)}.png", result)
+        cv.imwrite("__image.png", img)
+        cv.imwrite("__result.png", result)
+        page = 1 - page
+        # input()
