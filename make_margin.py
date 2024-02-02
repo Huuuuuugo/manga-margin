@@ -52,12 +52,6 @@ def cropY(img):
     mrgn_ttb = edges_ttb[0][0] - crop_pos[0]
     mrgn_btt = crop_pos[1] - edges_btt[0][0]
 
-    print(mrgn_ttb, mrgn_btt)
-    
-    # print(edges_ttb, edges_btt)
-    print(crop_pos)
-    print(side)
-            
     crop = img[crop_pos[0]:crop_pos[1], 0:]
     cv.imwrite("__cropped.png", crop)
     cv.imwrite("__markup.png", markup)
@@ -70,13 +64,21 @@ def mkMarginY(crop, best_y_margin, side, mrgn_ttb, mrgn_btt):
     crop_h, crop_w, ch = crop.shape
        
     # apply margin values
-    print(mrgn_ttb, mrgn_btt)
     mrgn_ttb = best_y_margin - mrgn_ttb
     mrgn_btt = best_y_margin - mrgn_btt
+    if mrgn_ttb < 0:
+        mrgn_ttb = best_y_margin - mrgn_ttb
+    if mrgn_btt < 0:
+        mrgn_btt = best_y_margin - mrgn_btt
     if not side:
         print("NONE")
-        result = np.full((crop_h-mrgn_btt+2*best_y_margin, crop_w, ch), [255, 255, 255], dtype=np.uint8)
-        result[mrgn_ttb:crop_h+mrgn_ttb, 0:] = crop
+        print(mrgn_ttb, mrgn_btt)
+        if mrgn_ttb > 0.9*best_y_margin:
+            result = np.full((crop_h-mrgn_ttb+2*best_y_margin+mrgn_btt, crop_w, ch), [255, 255, 255], dtype=np.uint8)
+            result[mrgn_ttb:crop_h+mrgn_ttb, 0:] = crop
+        else:
+            result = np.full((crop_h-mrgn_ttb+best_y_margin+mrgn_btt, crop_w, ch), [255, 255, 255], dtype=np.uint8)
+            result[mrgn_ttb:crop_h+mrgn_ttb, 0:] = crop
     elif side == 1:
         print("TOP")
         result = np.full((crop_h-mrgn_btt+best_y_margin, crop_w, ch), [255, 255, 255], dtype=np.uint8)
@@ -131,34 +133,33 @@ def cropX(img):
     mrgn_ltr = edges_ltr[0][0] - crop_pos[0]
     mrgn_rtl = crop_pos[1] - edges_rtl[0][0]
     # print(side)
-    cv.imwrite("__morph.png", morph)
-    cv.imwrite("__cropped.png", crop)
-    cv.imwrite("__markup.png", markup)
+    # cv.imwrite("__morph.png", morph)
+    # cv.imwrite("__cropped.png", crop)
+    # cv.imwrite("__markup.png", markup)
     return crop, mrgn_ltr, mrgn_rtl, side
 
 
-def mkMarginX(crop, page, best_margin, side, mrgn_ltr, mrgn_rtl):
+def mkMarginX(crop, page, best_x_margin, side, mrgn_ltr, mrgn_rtl):
     crop_h, crop_w, ch = crop.shape
        
     # apply margin values
-    print(mrgn_ltr, mrgn_rtl)
-    mrgn_ltr = best_margin - mrgn_ltr
-    mrgn_rtl = best_margin - mrgn_rtl
+    mrgn_ltr = best_x_margin - mrgn_ltr
+    mrgn_rtl = best_x_margin - mrgn_rtl
     if not side:
         print("NONE")
-        result = np.full((crop_h, (crop_w+best_margin+mrgn_ltr+mrgn_rtl), ch), [255, 255, 255], dtype=np.uint8)
+        result = np.full((crop_h, (crop_w+best_x_margin+mrgn_ltr+mrgn_rtl), ch), [255, 255, 255], dtype=np.uint8)
         if page:
             result[0:, mrgn_ltr:crop_w+mrgn_ltr] = crop
         else:
-            result[0:, best_margin+mrgn_ltr:crop_w+best_margin+mrgn_ltr] = crop
+            result[0:, best_x_margin+mrgn_ltr:crop_w+best_x_margin+mrgn_ltr] = crop
     elif side == 1:
         print("LTR")
-        result = np.full((crop_h, (crop_w+2*best_margin), ch), [255, 255, 255], dtype=np.uint8)
+        result = np.full((crop_h, (crop_w+2*best_x_margin), ch), [255, 255, 255], dtype=np.uint8)
         result[0:, 0:crop_w] = crop
     elif side == 2:
         print("RTL")
-        result = np.full((crop_h, (crop_w+2*best_margin), ch), [255, 255, 255], dtype=np.uint8)
-        result[0:, best_margin*2:crop_w+best_margin*2] = crop
+        result = np.full((crop_h, (crop_w+2*best_x_margin), ch), [255, 255, 255], dtype=np.uint8)
+        result[0:, best_x_margin*2:crop_w+best_x_margin*2] = crop
     else:
         result = crop
 
@@ -179,14 +180,14 @@ def mainA(i, path, page):
     cv.imwrite(f"esculturas/{str(i).zfill(5)}.png", result)
     return img, result
 
+if __name__ == "__main__":
+    path = "samples/esculturas/"
+    page = 1
 
-path = "samples/esculturas/"
-page = 1
-
-for i in range(232, 264): #232 264
-    img, result = mainA(i, path, page)
-    page = 1 - page
-    cv.imwrite("__result.png", result)
-    cv.imwrite("__image.png", img)
-    input()
+    for i in range(232, 264): #232 264
+        img, result = mainA(i, path, page)
+        page = 1 - page
+        cv.imwrite("__result.png", result)
+        cv.imwrite("__image.png", img)
+        input()
 
