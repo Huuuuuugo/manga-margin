@@ -29,24 +29,22 @@ def isntPageNumber(img, y, x):
             return True
     return False
 
+
 def cropY(img):
     img_w = img.shape[1]
     img_h = img.shape[0]
     crop_pos = [img_h, 0]
     markup = img.copy() 
 
-    kernel = cv.getStructuringElement(cv.MORPH_OPEN, (3,3))
-    morph = cv.bitwise_not(cv.morphologyEx(cv.bitwise_not(img), cv.MORPH_OPEN, kernel))
-    cv.imwrite("__morph.png", morph)
 
     side = 0
     edges_ttb = []
     edges_btt = []
-    for x in range(len(morph[0])):
+    for x in range(len(img[0])):
         if x%5:
             continue
-        for y in range(0, len(morph//6)):
-            if morph[y][x][0] < 200:
+        for y in range(0, len(img//6)):
+            if img[y][x][0] < 80:
                 if y < crop_pos[0]:
                     crop_pos[0] = y
                 if side in [0, 2] and y == 0:
@@ -56,12 +54,12 @@ def cropY(img):
                     markup[y][x-2:x] = [255, 20, 20]
                 edges_ttb.append(y)
                 break
-        for y in reversed(range(5*(len(morph)//6), len(morph)+1)):
+        for y in reversed(range(5*(len(img)//6), len(img)+1)):
             # print(y)
-            if morph[y-1][x][0] < 200:
+            if img[y-1][x][0] < 80:
                 if y > crop_pos[1]:
                     crop_pos[1] = y
-                if side < 2 and y == img_h and isntPageNumber(morph, y, x):
+                if side < 2 and y == img_h and isntPageNumber(img, y, x):
                     side += 2
                 for y in range(y-5, y):
                     markup[y][x-2:x] = [255, 20, 20]
@@ -87,24 +85,19 @@ def mkMarginY(crop, best_y_margin, side, mrgn_ttb, mrgn_btt):
     # apply margin values
     mrgn_ttb = best_y_margin - mrgn_ttb
     mrgn_btt = best_y_margin - mrgn_btt
-    if mrgn_ttb < 0:
-        mrgn_ttb = best_y_margin - mrgn_ttb
-    if mrgn_btt < 0:
-        mrgn_btt = best_y_margin - mrgn_btt
-    if mrgn_ttb > best_y_margin:
-        mrgn_ttb = best_y_margin
-    if mrgn_btt > best_y_margin:
-        mrgn_btt = best_y_margin
+    # if mrgn_ttb < 0:
+    #     mrgn_ttb = best_y_margin - mrgn_ttb
+    # if mrgn_btt < 0:
+    #     mrgn_btt = best_y_margin - mrgn_btt
+    # # if mrgn_ttb > best_y_margin:
+    #     mrgn_ttb = best_y_margin
+    # if mrgn_btt > best_y_margin:
+    #     mrgn_btt = best_y_margin
+    print("mrgn: ", mrgn_ttb, mrgn_btt)
     if not side:
         print("NONE")
-        if mrgn_ttb > 0.8*best_y_margin or mrgn_btt > 0.8*best_y_margin:
-            print(mrgn_ttb, mrgn_btt, "big")
-            result = np.full((crop_h-mrgn_ttb+2*best_y_margin+mrgn_btt, crop_w, ch), [255, 255, 255], dtype=np.uint8)
-            result[mrgn_ttb:crop_h+mrgn_ttb, 0:] = crop
-        else:
-            print(mrgn_ttb, mrgn_btt, "small")
-            result = np.full((crop_h-mrgn_ttb+best_y_margin+mrgn_btt, crop_w, ch), [255, 255, 255], dtype=np.uint8)
-            result[mrgn_ttb:crop_h+mrgn_ttb, 0:] = crop
+        result = np.full((crop_h+mrgn_ttb+mrgn_btt, crop_w, ch), [255, 255, 255], dtype=np.uint8)
+        result[mrgn_ttb:crop_h+mrgn_ttb, 0:] = crop
     elif side == 1:
         print("TOP")
         result = np.full((crop_h-mrgn_btt+best_y_margin, crop_w, ch), [255, 255, 255], dtype=np.uint8)
