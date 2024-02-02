@@ -1,9 +1,9 @@
 import cv2 as cv
-import numbers as np
+import numpy as np
 from collections import Counter as counter
 
 
-def crop(img):
+def cropY(img):
     img_w = img.shape[1]
     img_h = img.shape[0]
     crop_pos = [img_h, 0]
@@ -51,7 +51,6 @@ def crop(img):
     
     # print(edges_ttb, edges_btt)
     print(crop_pos)
-    print(edges_ttb[2])
     print(side)
             
     crop = img[crop_pos[0]:crop_pos[1], 0:]
@@ -59,17 +58,44 @@ def crop(img):
     cv.imwrite("__markup.png", markup)
     # print(max(edges_ltr) - min(edges_ltr))
     # print(max(edges_rtl) - min(edges_rtl))
-    return crop
+    return crop, mrgn_ttb, mrgn_btt, side
+
+#y = 100
+def mkMarginY(crop, best_y_margin, side, mrgn_ttb, mrgn_btt):
+    crop_h, crop_w, ch = crop.shape
+       
+    # apply margin values
+    print(mrgn_ttb, mrgn_btt)
+    mrgn_ttb = best_y_margin - mrgn_ttb
+    mrgn_btt = best_y_margin - mrgn_btt
+    if not side:
+        print("NONE")
+        result = np.full((crop_h-mrgn_btt+2*best_y_margin, crop_w, ch), [255, 255, 255], dtype=np.uint8)
+        result[mrgn_ttb:crop_h+mrgn_ttb, 0:] = crop
+    elif side == 1:
+        print("TOP")
+        result = np.full((crop_h-mrgn_btt+best_y_margin, crop_w, ch), [255, 255, 255], dtype=np.uint8)
+        result[0:crop_h, 0:] = crop
+    elif side == 2:
+        print("BTM")
+        result = np.full((crop_h+mrgn_ttb, crop_w, ch), [255, 255, 255], dtype=np.uint8)
+        result[mrgn_ttb:crop_h+mrgn_ttb, 0:] = crop
+    else:
+        print("BOTH")
+        result = crop
+
+    return result
 
 path = "samples/esculturas/"
 page = 1
 
-for i in range(258, 264): #232
+for i in range(232, 264): #232
     print("PAGE: ", i)
     name = f"kcc-{str(i).zfill(4)}-kcc.jpg"
     img = cv.imread(f"{path}{name}")
     # img = cv.imread("__cropped.png")
-    result = crop(img)
+    crop, mrgn_ttb, mrgn_btt, side = cropY(img)
+    result = mkMarginY(crop, 100, side, mrgn_ttb, mrgn_btt)
     # cv.imwrite(f"esculturas/{str(i).zfill(5)}.png", result)
     page = 1 - page
     cv.imwrite("__result.png", result)
