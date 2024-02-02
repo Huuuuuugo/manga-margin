@@ -2,10 +2,12 @@ import cv2 as cv
 import numpy as np
 from collections import Counter as counter
 from make_margin import cropY, cropX, mkMarginY, mkMarginX
+from isPageNumber import isntPageNumber
 
 
 def getDim(img):
     h, w = 0, 0
+
     crop_imgY, ttb, btt, sideY = cropY(img)
     if not sideY:
         h = crop_imgY.shape[0] - ttb - btt
@@ -29,6 +31,17 @@ def getDim(img):
 
     return h, w
 
+def getYMargin(img):
+    kernel = np.ones((3,5),np.uint8)
+    erode = cv.bitwise_not(cv.erode(cv.bitwise_not(img),kernel,iterations = 1))
+    kernel = cv.getStructuringElement(cv.MORPH_OPEN, (4,4))
+    morph = cv.bitwise_not(cv.morphologyEx(cv.bitwise_not(erode), cv.MORPH_OPEN, kernel))
+    cv.imwrite("__erode.png", erode)
+
+    crop_imgY, ttb, btt, sideY = cropY(morph)
+
+    return ttb, btt
+
 
 def resizeImg(img, best_h, best_w, dim_h, dim_w):
     img_h, img_w, ch = img.shape
@@ -42,7 +55,7 @@ def resizeImg(img, best_h, best_w, dim_h, dim_w):
     if abs(scale_h) > dif_h and abs(scale_w) > dif_w:
         if dif_h > dif_w: #15.57 #3.72    #10.74 #2.08
             print("H: ", scale_h)
-            result = cv.resize(img, (img_w, img_h+scale_h)) 
+            result = cv.resize(img, (img_w, img_h+abs(scale_h))) 
         else:
             print("W: ", scale_w)
             result = cv.resize(img, (img_w+scale_w, img_h))
@@ -67,6 +80,7 @@ if __name__ == "__main__":
 
         crop, mrgn_ttb, mrgn_btt, side = cropY(img)
         resultY = mkMarginY(crop, y_margin, side, mrgn_ttb, mrgn_btt)
+        mrgn_ttb, mrgn_btt = getYMargin(img)
 
         crop1, mrgn_ltr, mrgn_rtl, side = cropX(resultY)
         result = mkMarginX(crop1, page, x_margin, side, mrgn_ltr, mrgn_rtl)
@@ -78,5 +92,6 @@ if __name__ == "__main__":
         cv.imwrite(f"esculturas/{str(i).zfill(5)}.png", result)
         cv.imwrite("__image.png", img)
         cv.imwrite("__result.png", result)
+        cv.imwrite("__resultY.png", resultY)
         page = 1 - page
         # input()
