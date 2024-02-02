@@ -1,13 +1,34 @@
 import cv2 as cv
 import numpy as np
 from collections import Counter as counter
-from ymargin import cropY
-from ymargin import mkMarginY
+# from isPageNumber import isntPageNumber
 
 #TODO: create function getMargin() to get best margin size from scanning input images
 #TODO: create function to scale cropped images to a consistant value before making margin
 #TODO: make mkMarginX() compensate for the difference between common width and width of cropped image
     # create a function to get the common width from scanning input image
+def isntPageNumber(img, y, x):
+    print(y, x)
+    print("__pnum__")
+    img_w = img.shape[1]
+    if x < img_w//2:
+        print("Left")
+        if x > 30:
+            pnum = img[y-50:y-49, x-30:x+30]
+        else:
+            pnum = img[y-50:y-49, 0:x+30]
+    else:
+        print("Right")
+        if x < img_w - 30:
+            pnum = img[y-50:y-49, x-30:x+30]
+        else:
+            pnum = img[y-50:y-49, x-30:]
+    cv.imwrite("__PageNumber.png", pnum)
+    for pixel in pnum[0]:
+        if pixel[0] < 200:
+            return True
+    return False
+
 def cropY(img):
     img_w = img.shape[1]
     img_h = img.shape[0]
@@ -28,7 +49,7 @@ def cropY(img):
             if morph[y][x][0] < 200:
                 if y < crop_pos[0]:
                     crop_pos[0] = y
-                if y == 0 and side in [0, 2]:
+                if side in [0, 2] and y == 0:
                     print(y)
                     side += 1
                 for y in range(y, y+5):
@@ -40,7 +61,7 @@ def cropY(img):
             if morph[y-1][x][0] < 200:
                 if y > crop_pos[1]:
                     crop_pos[1] = y
-                if y == img_h and side < 2:
+                if side < 2 and y == img_h and isntPageNumber(morph, y, x):
                     side += 2
                 for y in range(y-5, y):
                     markup[y][x-2:x] = [255, 20, 20]
@@ -76,12 +97,12 @@ def mkMarginY(crop, best_y_margin, side, mrgn_ttb, mrgn_btt):
         mrgn_btt = best_y_margin
     if not side:
         print("NONE")
-        if mrgn_ttb > 0.9*best_y_margin or mrgn_btt > 0.9*best_y_margin:
-            print(mrgn_ttb, mrgn_btt)
+        if mrgn_ttb > 0.8*best_y_margin or mrgn_btt > 0.8*best_y_margin:
+            print(mrgn_ttb, mrgn_btt, "big")
             result = np.full((crop_h-mrgn_ttb+2*best_y_margin+mrgn_btt, crop_w, ch), [255, 255, 255], dtype=np.uint8)
             result[mrgn_ttb:crop_h+mrgn_ttb, 0:] = crop
         else:
-            print(mrgn_ttb, mrgn_btt)
+            print(mrgn_ttb, mrgn_btt, "small")
             result = np.full((crop_h-mrgn_ttb+best_y_margin+mrgn_btt, crop_w, ch), [255, 255, 255], dtype=np.uint8)
             result[mrgn_ttb:crop_h+mrgn_ttb, 0:] = crop
     elif side == 1:
