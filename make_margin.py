@@ -70,13 +70,18 @@ def mkMarginY(crop, best_y_margin, side, mrgn_ttb, mrgn_btt):
         mrgn_ttb = best_y_margin - mrgn_ttb
     if mrgn_btt < 0:
         mrgn_btt = best_y_margin - mrgn_btt
+    if mrgn_ttb > best_y_margin:
+        mrgn_ttb = best_y_margin
+    if mrgn_btt > best_y_margin:
+        mrgn_btt = best_y_margin
     if not side:
         print("NONE")
-        print(mrgn_ttb, mrgn_btt)
-        if mrgn_ttb > 0.9*best_y_margin:
+        if mrgn_ttb > 0.9*best_y_margin or mrgn_btt > 0.9*best_y_margin:
+            print(mrgn_ttb, mrgn_btt)
             result = np.full((crop_h-mrgn_ttb+2*best_y_margin+mrgn_btt, crop_w, ch), [255, 255, 255], dtype=np.uint8)
             result[mrgn_ttb:crop_h+mrgn_ttb, 0:] = crop
         else:
+            print(mrgn_ttb, mrgn_btt)
             result = np.full((crop_h-mrgn_ttb+best_y_margin+mrgn_btt, crop_w, ch), [255, 255, 255], dtype=np.uint8)
             result[mrgn_ttb:crop_h+mrgn_ttb, 0:] = crop
     elif side == 1:
