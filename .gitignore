@@ -1,5 +1,7 @@
+__pycache__/
+results/
+samples/
+old/
 *.png
 *.jpg
 *.jpeg
-samples/
-__pycache__/
