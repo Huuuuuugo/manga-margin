@@ -84,7 +84,7 @@ def mkMarginY(crop, best_y_margin, side, mrgn_ttb, mrgn_btt):
         result[mrgn_ttb:crop_h+mrgn_ttb, 0:] = crop
     elif side == 1:
         print("TOP")
-        result = np.full((crop_h-mrgn_btt+best_y_margin, crop_w, ch), [255, 255, 255], dtype=np.uint8)
+        result = np.full((crop_h+mrgn_btt, crop_w, ch), [255, 255, 255], dtype=np.uint8)
         result[0:crop_h, 0:] = crop
     elif side == 2:
         print("BTM")
