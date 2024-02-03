@@ -4,18 +4,6 @@ from collections import Counter as counter
 from makeMargin import cropY, cropX
 
 
-def getYMargin(img):
-    kernel = np.ones((3,5),np.uint8)
-    erode = cv.bitwise_not(cv.erode(cv.bitwise_not(img),kernel,iterations = 1))
-    kernel = cv.getStructuringElement(cv.MORPH_OPEN, (4,4))
-    morph = cv.bitwise_not(cv.morphologyEx(cv.bitwise_not(erode), cv.MORPH_OPEN, kernel))
-    cv.imwrite("results/__erode.png", erode)
-
-    _, ttb, btt, _ = cropY(morph)
-
-    return ttb, btt
-
-
 def resizeImg(img, best_h, best_w):
     dim_h, dim_w = 0, 0
 
@@ -44,11 +32,17 @@ def resizeImg(img, best_h, best_w):
 
     scale_h = best_h - dim_h
     scale_w = best_w - dim_w
-    dif_h = best_h/100
-    dif_w = best_w/100
 
-    if best_h < 1.25*img_h:
-        result = cv.resize(img, (img_w, img_h+scale_h)) 
-    if best_w < 1.25*img_w:
-        result = cv.resize(img, (img_w+scale_w, img_h))
+    # print("H: ", img_h, dim_h, best_h, scale_h)
+    # print("W: ", img_w, dim_w, best_w, scale_w)
+    # if scale_h and scale_w:
+    #     prop = abs(abs(img_h/best_h)/abs(img_w/best_w))
+    #     if prop > 1.1 or prop < 0.9:
+    #         pass
+    #     print("h/h: ", img_h/best_h)
+    #     print("w/w: ", img_w/best_w)
+    #     print("dif: ", abs(abs(img_h/best_h)/abs(img_w/best_w)))
+
+    result = cv.resize(img, (img_w, img_h+scale_h)) 
+    result = cv.resize(img, (img_w+scale_w, img_h))
     return result
