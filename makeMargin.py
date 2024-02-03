@@ -71,13 +71,32 @@ def mkMarginY(crop, best_y_margin, side, mrgn_ttb, mrgn_btt):
     crop_h, crop_w, ch = crop.shape
 
     # validade 'side' provided by cropY()
-
+    print(mrgn_ttb)
+    if side in [1, 3] and mrgn_ttb:
+        if mrgn_ttb > best_y_margin - 20:
+            for x in range(crop_h):
+                if crop[0][x][0] < 100:
+                    line_check = np.count_nonzero(crop[0:mrgn_ttb, x:x+1] > 200)//3//2
+                    if not line_check:
+                        # crop[0:mrgn_ttb][x:x+1] = [50, 50, 255]
+                        have_line = True
+                        break
+            if not have_line:
+                print("FAKE LTR (line)")
+                side -= 1
+        else:
+            print("FAKE LTR")
+            side -= 1
 
     # calculate and apply margin values
     if best_y_margin > mrgn_ttb:
         mrgn_ttb = best_y_margin - mrgn_ttb
+    else:
+        mrgn_ttb -= best_y_margin
     if best_y_margin > mrgn_btt:
         mrgn_btt = best_y_margin - mrgn_btt
+    else:
+        mrgn_btt -= best_y_margin
     if not side:
         print("NONE")
         result = np.full((crop_h+mrgn_ttb+mrgn_btt, crop_w, ch), [255, 255, 255], dtype=np.uint8)
@@ -143,9 +162,6 @@ def mkMarginX(crop, page, best_x_margin, side, mrgn_ltr, mrgn_rtl):
     # validade 'side' provided by cropX()
     if side in [1, 3] and mrgn_ltr:
         have_line = False
-        # whites = np.count_nonzero(crop[0:, 0:mrgn_ltr] > 200)//mrgn_ltr//3
-        print("mrgn: ", mrgn_ltr)
-        print("crop_h: ", crop_h)
         if mrgn_ltr > best_x_margin - 20:
             for y in range(crop_h):
                 if crop[y][0][0] < 100:
@@ -160,14 +176,12 @@ def mkMarginX(crop, page, best_x_margin, side, mrgn_ltr, mrgn_rtl):
         else:
             print("FAKE LTR")
             side -= 1
-
         # print("nonzero: ", crop_h, whites)
-        cv.imwrite("results/__nonzero.png", crop[0:, 0:mrgn_ltr])
+        # cv.imwrite("results/__nonzero.png", crop[0:, 0:mrgn_ltr])
         # input("__nonzeroLTR__")
-
+            
     if side in [2, 3] and mrgn_rtl:
         have_line = False
-        # whites = np.count_nonzero(crop[0:, crop_w-mrgn_rtl:] > 250)//mrgn_rtl//3
         print("mrgn: ", mrgn_rtl)
         print("crop_h: ", crop_h)
         if mrgn_rtl > best_x_margin - 20:
@@ -184,10 +198,8 @@ def mkMarginX(crop, page, best_x_margin, side, mrgn_ltr, mrgn_rtl):
         else:
             print("FAKE RTL")
             side -= 2
-
-
         # print("nonzero: ", crop_h, whites)
-        cv.imwrite("results/__nonzero.png", crop[0:, crop_w-mrgn_rtl:])
+        # cv.imwrite("results/__nonzero.png", crop[0:, crop_w-mrgn_rtl:])
         # input("__nonzeroRTL__")
 
     # calculate and apply margin values
