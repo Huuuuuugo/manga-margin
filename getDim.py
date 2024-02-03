@@ -18,7 +18,7 @@ def getDim(img):
     elif sideY == 3:
         h = crop_imgY.shape[0]
 
-    crop_imgX, ltr, rtl, sideX = cropX(crop_imgY)
+    crop_imgX, ltr, rtl, sideX = cropX(img)
     if not sideX:
         w = crop_imgX.shape[1] - ltr - rtl
     elif sideX == 1:
@@ -52,14 +52,16 @@ def resizeImg(img, best_h, best_w, dim_h, dim_w):
     dif_h = best_h/100
     dif_w = best_w/100
 
-    if abs(scale_h) > dif_h and abs(scale_w) > dif_w:
-        if dif_h > dif_w: #15.57 #3.72    #10.74 #2.08
-            print("H: ", scale_h)
-            result = cv.resize(img, (img_w, img_h+abs(scale_h))) 
-        else:
-            print("W: ", scale_w)
-            result = cv.resize(img, (img_w+scale_w, img_h))
+    # if abs(scale_h) > dif_h and abs(scale_w) > dif_w:
+    if best_h < 1.25*img_h: #15.57 #3.72    #10.74 #2.08
+        print("H: ", scale_h, img_h)
+        result = cv.resize(img, (img_w, img_h+scale_h)) 
+# else:
+    if best_w < 1.25*img_w:
+        print("W: ", scale_w, img_w)
+        result = cv.resize(img, (img_w+scale_w, img_h))
     # result = cv.resize(img, (img_w - img_w%5, img_h - img_h%5))
+    print("shape: ", img.shape, result.shape)
     return result
 
 best_h = 1557
@@ -67,12 +69,12 @@ best_w = 1074
 x_margin = 62
 y_margin = 100
 if __name__ == "__main__":
-    path = "samples/esculturas/"
+    path = "samples/baloes/"
     page = 1
-    # both 249; top 254
-    for i in range(232, 264): #232
+    # 21, 59
+    for i in range(231, 249): #232
         print("PAGE: ", i)
-        name = f"kcc-{str(i).zfill(4)}-kcc.jpg"
+        name = f"{str(i).zfill(5)}.jpeg"
         img = cv.imread(f"{path}{name}")
 
         dim_h, dim_w = getDim(img)
@@ -89,7 +91,7 @@ if __name__ == "__main__":
         final_w = best_h+3*x_margin
         result = cv.resize(result, (final_h-final_h%5, final_w-final_w%5))
 
-        cv.imwrite(f"esculturas/{str(i).zfill(5)}.png", result)
+        cv.imwrite(f"baloes/{str(i).zfill(5)}.png", result)
         cv.imwrite("__image.png", img)
         cv.imwrite("__result.png", result)
         cv.imwrite("__resultY.png", resultY)
