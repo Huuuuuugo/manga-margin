@@ -157,15 +157,9 @@ def mkMarginX(crop, page, best_x_margin, side, mrgn_ltr, mrgn_rtl):
             if not have_line:
                 print("FAKE LTR (line)")
                 side -= 1
-
-        if not have_line and side in [1, 3]:
-            for x in range(len(crop[0][0:mrgn_ltr])):
-                wt = np.count_nonzero(crop[0:, x:x+1] > 200)//3
-                print("LTR; whites: ", x, wt)
-                if crop_h - wt < 600:
-                    print("FAKE LTR")
-                    side -= 1
-                    break
+        else:
+            print("FAKE LTR")
+            side -= 1
 
         # print("nonzero: ", crop_h, whites)
         cv.imwrite("results/__nonzero.png", crop[0:, 0:mrgn_ltr])
@@ -187,15 +181,10 @@ def mkMarginX(crop, page, best_x_margin, side, mrgn_ltr, mrgn_rtl):
             if not have_line:
                 print("FAKE RTL (line)")
                 side -= 2
+        else:
+            print("FAKE RTL")
+            side -= 2
 
-        if not have_line and side in [2, 3]:
-            for x in range(len(crop[0][0:mrgn_ltr])):
-                wt = np.count_nonzero(crop[0:, x:x+1] > 200)//3
-                print("LTR; whites: ", x, wt)
-                if crop_h - wt < 600:
-                    print("FAKE RTL")
-                    side -= 2
-                    break
 
         # print("nonzero: ", crop_h, whites)
         cv.imwrite("results/__nonzero.png", crop[0:, crop_w-mrgn_rtl:])
@@ -204,8 +193,13 @@ def mkMarginX(crop, page, best_x_margin, side, mrgn_ltr, mrgn_rtl):
     # calculate and apply margin values
     if best_x_margin > mrgn_ltr:
         mrgn_ltr = best_x_margin - mrgn_ltr
+    else:
+        mrgn_ltr -= best_x_margin
     if best_x_margin > mrgn_rtl:
         mrgn_rtl = best_x_margin - mrgn_rtl
+    else:
+        mrgn_rtl -= best_x_margin
+    print(mrgn_ltr, mrgn_rtl)
     if not side:
         print("NONE")
         result = np.full((crop_h, (crop_w+best_x_margin+mrgn_ltr+mrgn_rtl), ch), [255, 255, 255], dtype=np.uint8)
@@ -215,12 +209,12 @@ def mkMarginX(crop, page, best_x_margin, side, mrgn_ltr, mrgn_rtl):
             result[0:, best_x_margin+mrgn_ltr:crop_w+best_x_margin+mrgn_ltr] = crop
     elif side == 1:
         print("LTR")
-        result = np.full((crop_h, (crop_w+2*best_x_margin), ch), [255, 255, 255], dtype=np.uint8)
+        result = np.full((crop_h, (crop_w+best_x_margin+mrgn_rtl), ch), [255, 255, 255], dtype=np.uint8)
         result[0:, 0:crop_w] = crop
     elif side == 2:
         print("RTL")
-        result = np.full((crop_h, (crop_w+2*best_x_margin), ch), [255, 255, 255], dtype=np.uint8)
-        result[0:, best_x_margin*2:crop_w+best_x_margin*2] = crop
+        result = np.full((crop_h, (crop_w+best_x_margin+mrgn_ltr), ch), [255, 255, 255], dtype=np.uint8)
+        result[0:, best_x_margin+mrgn_ltr:crop_w+best_x_margin+mrgn_ltr] = crop
     else:
         print("BOTH")
         result = crop
