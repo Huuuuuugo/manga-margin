@@ -188,7 +188,7 @@ def mkMarginX(crop, page, best_x_margin, side, mrgn_ltr, mrgn_rtl):
         if mrgn_rtl > best_x_margin - 20:
             for y in range(crop_h):
                 if crop[y][crop_w-1][0] < 100:
-                    line_check = np.count_nonzero(crop[y-1:y, crop_w-mrgn_rtl:])//3//2
+                    line_check = np.count_nonzero(crop[y-1:y, crop_w-mrgn_rtl:] > 200)//3//2
                     if not line_check:
                         # crop[y-1:y][crop_w-1-mrgn_rtl:0] = [50, 50, 255]
                         have_line = True
