@@ -13,11 +13,23 @@ if __name__ == "__main__":
     path = "samples/baloes/"
     page = 1
     # 21, 59
-    for i in range(187+0, 249): #232
+    for i in range(186+0, 249): #232
         print("PAGE: ", i)
         name = f"{str(i).zfill(5)}.jpeg"
         img = cv.imread(f"{path}{name}")
         # cv.imwrite("results/__image.png", img)
+
+        # check if img is a double page image
+        img_h, img_w, ch = img.shape
+        if img_w/img_h > img_h/img_w and img_w > best_w+3*x_margin:
+            result = img.copy()
+            cv.imwrite(f"results/baloes/{str(i).zfill(5)}.png", result)
+            cv.imwrite("results/__result.png", result)
+            # cv.imwrite("results/__resultY.png", resultY)
+            if not page:
+                page = 1 - page
+            # input("__main__")
+            continue
 
         img = resizeImg(img, best_h, best_w)
         # cv.imwrite("results/__resized.png", img)
