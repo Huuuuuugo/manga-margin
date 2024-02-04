@@ -8,10 +8,6 @@ from resizeImage import resizeImg
 
 
 #get info
-prefix = 'kcc-'
-zfill_size = 4
-sufix = "-kcc.jpg"
-
 root_path = input("Path: ").replace('\\', '/').replace('\"', '')
 dir_folders = os.listdir(root_path)
 try:
@@ -22,6 +18,10 @@ try:
     dir_folders.pop(dir_folders.index("Fim"))
 except ValueError:
     pass
+
+prefix = input("File name prefix: ")
+zfill_size = int(input("File name zero fill: "))
+sufix = input("File name sufix: ")
 
 
 # set preferences

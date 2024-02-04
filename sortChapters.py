@@ -2,10 +2,7 @@ import shutil
 import os
 
 
-prefix = 'kcc-'
-zfill_size = 4
-sufix = '-kcc.jpg'
-
+# get info
 path = input("Path: ").replace('\\', '/').replace('\"', '')
 
 chapter = input("Chapter beginings: ").split()
@@ -15,9 +12,14 @@ chapter_name = [None]*len(chapter)
 for i, element in enumerate(chapter):
     chapter[i] = int(element)
     chapter_name[i] = input(f"Name of chapter {i+1}: ")
-
 chapter.append(ending)
 
+prefix = input("File name prefix: ")
+zfill_size = int(input("File name zero fill: "))
+sufix = input("File name sufix: ")
+
+
+# move files
 current_chapter_str = "__Início"
 current_chapter = 0
 page_counter = 1
