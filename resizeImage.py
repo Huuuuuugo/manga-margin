@@ -30,9 +30,13 @@ def resizeImg(img, best_h, best_w):
     img_h, img_w, ch = img.shape
     scale_h = best_h - dim_h
     scale_w = best_w - dim_w
+    scaled = img.copy()
 
-    scaled = cv.resize(img, (img_w, img_h+scale_h), interpolation=cv.INTER_LINEAR) 
-    scaled = cv.resize(img, (img_w+scale_w, img_h), interpolation=cv.INTER_LINEAR)
-    # cv.imwrite("scaleds/__scaled.png", scaled)
+    print(scale_h, scale_w)
+    if abs(scale_h) < 200:
+        scaled = cv.resize(img, (img_w, img_h+scale_h), interpolation=cv.INTER_LINEAR) 
+    if abs(scale_w) < 200:
+        scaled = cv.resize(img, (img_w+scale_w, img_h), interpolation=cv.INTER_LINEAR)
+    # cv.imwrite("results/__scaled.png", scaled)
 
     return scaled
