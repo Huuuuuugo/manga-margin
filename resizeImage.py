@@ -32,7 +32,6 @@ def resizeImg(img, best_h, best_w):
     scale_w = best_w - dim_w
     scaled = img.copy()
 
-    print(scale_h, scale_w)
     if abs(scale_h) < 200:
         scaled = cv.resize(img, (img_w, img_h+scale_h), interpolation=cv.INTER_LINEAR) 
     if abs(scale_w) < 200:

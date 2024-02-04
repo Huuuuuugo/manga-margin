@@ -71,7 +71,6 @@ def mkMarginY(crop, best_y_margin, side, mrgn_ttb, mrgn_btt):
     crop_h, crop_w, ch = crop.shape
 
     # validade 'side' provided by cropY()
-    print(mrgn_ttb)
     if side in [1, 3] and mrgn_ttb:
         have_line = False
         if mrgn_ttb > best_y_margin - 20:
@@ -177,19 +176,15 @@ def mkMarginX(crop, page, best_x_margin, side, mrgn_ltr, mrgn_rtl):
                         have_line = True
                         break
             if not have_line:
-                print("FAKE LTR (line)")
+                print("FAKE LTR")
                 side -= 1
         else:
             print("FAKE LTR")
             side -= 1
-        # print("nonzero: ", crop_h, whites)
-        # cv.imwrite("results/__nonzero.png", crop[0:, 0:mrgn_ltr])
-        # input("__nonzeroLTR__")
+
             
     if side in [2, 3] and mrgn_rtl:
         have_line = False
-        print("mrgn: ", mrgn_rtl)
-        print("crop_h: ", crop_h)
         if mrgn_rtl > best_x_margin - 20:
             for y in range(crop_h):
                 if crop[y][crop_w-1][0] < 100:
@@ -199,14 +194,12 @@ def mkMarginX(crop, page, best_x_margin, side, mrgn_ltr, mrgn_rtl):
                         have_line = True
                         break
             if not have_line:
-                print("FAKE RTL (line)")
+                print("FAKE RTL")
                 side -= 2
         else:
             print("FAKE RTL")
             side -= 2
-        # print("nonzero: ", crop_h, whites)
-        # cv.imwrite("results/__nonzero.png", crop[0:, crop_w-mrgn_rtl:])
-        # input("__nonzeroRTL__")
+
 
     # calculate and apply margin values
     if best_x_margin > mrgn_ltr:
@@ -217,7 +210,6 @@ def mkMarginX(crop, page, best_x_margin, side, mrgn_ltr, mrgn_rtl):
         mrgn_rtl = best_x_margin - mrgn_rtl
     else:
         mrgn_rtl -= best_x_margin
-    print(mrgn_ltr, mrgn_rtl)
     if not side:
         print("NONE")
         result = np.full((crop_h, (crop_w+best_x_margin+mrgn_ltr+mrgn_rtl), ch), [255, 255, 255], dtype=np.uint8)
