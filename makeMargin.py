@@ -73,19 +73,25 @@ def mkMarginY(crop, best_y_margin, side, mrgn_ttb, mrgn_btt):
     # validade 'side' provided by cropY()
     print(mrgn_ttb)
     if side in [1, 3] and mrgn_ttb:
+        have_line = False
         if mrgn_ttb > best_y_margin - 20:
-            for x in range(crop_h):
+            for x in range(crop_w):
                 if crop[0][x][0] < 100:
                     line_check = np.count_nonzero(crop[0:mrgn_ttb, x:x+1] > 200)//3//2
                     if not line_check:
-                        # crop[0:mrgn_ttb][x:x+1] = [50, 50, 255]
+                        # crop[0:mrgn_ttb+20, x:x+1] = [50, 50, 255]
                         have_line = True
                         break
-            if not have_line:
-                print("FAKE LTR (line)")
-                side -= 1
         else:
-            print("FAKE LTR")
+            for x in range(crop_w):
+                if crop[0][x][0] < 100:
+                    line_check = np.count_nonzero(crop[0:mrgn_ttb+20, x:x+1] > 200)//3//2
+                    if not line_check:
+                        # crop[0:mrgn_ttb+20, x:x+1] = [50, 50, 255]
+                        have_line = True
+                        break
+        if not have_line:
+            print("FAKE TOP")
             side -= 1
 
     # calculate and apply margin values
