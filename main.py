@@ -80,7 +80,12 @@ for i, dir in enumerate(dir_folders):
         if img_w/img_h > img_h/img_w and img_w > final_w:
             #TODO: scale result to appropriate multiple of 5 before saving
             result = img.copy()
-            cv.imwrite(f"results/baloes/{str(i).zfill(5)}.png", result)
+            cv.imwrite(temp_img_path, result)
+            shutil.copy(temp_img_path, path)
+            os.remove(temp_img_path)
+
+            print(f"{page + 1}/{pages}")
+            page_counter += 1
             if not page_type:
                 page_type = 1 - page_type
             # input("__main__")
